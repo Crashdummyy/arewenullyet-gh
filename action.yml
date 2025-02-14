@@ -1,0 +1,47 @@
+name: "arewenullyet"
+description: "Checks whether an csproj is ready to globally enable nullability"
+inputs:
+  root-path:
+    description: "Root directory to begin looking for .csproj files"
+    required: false
+    default: .
+  pattern:
+    description: "Glob-Pattern of projects to check"
+    required: false
+    default: "*.csproj"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check projects
+      shell: bash
+      run: |
+        echo "| Project   |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|-----------|:-------------:|-----------:|" >> "$GITHUB_STEP_SUMMARY"
+
+        for project in $(find "${{ inputs.root-path }}" -type f -name "${{ inputs.pattern }}" | sort -n);do
+          echo "-> $project"
+          dir="$(dirname "$project")"
+          name="$(basename "$dir")"
+          if grep -q "Nullable>enable";then
+              echo "Detected <Nullable>enable</Nullable>"
+              echo "| $name | - | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
+              continue;
+          fi
+
+          mapfile -t files < <(find "$dir" -type f -name "*.cs")
+          filecount=0
+          nullableLabel="✅"
+
+          echo "Detected ${#files[@]} .cs files"
+          for csFile in "${files[@]}";do
+                if grep -q "#nullable enable" "$csFile"; then
+                  filecount=$((filecount+1))
+                else
+                  nullableLabel="❌"
+                fi
+          done
+
+          echo "| $name | $filecount / ${#files[@]} | $nullableLabel |" >> "$GITHUB_STEP_SUMMARY"
+
+        done
