@@ -35,12 +35,10 @@ jobs:
       - name: Clone Repository
         id: gitClone
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Assert nullability
         uses: crashdummyy/arewenullyet-gh@master
         with:
           root-path: './src'
-          run-unit-tests: '*NotLegacy*.csproj'
+          pattern: '*NotLegacy*.csproj'
 ````
