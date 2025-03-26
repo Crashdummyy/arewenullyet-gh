@@ -23,7 +23,7 @@ runs:
           echo "-> $project"
           dir="$(dirname "$project")"
           name="$(basename "$dir")"
-          if grep -q "Nullable>enable";then
+          if grep -q "Nullable>enable" "$project";then
               echo "Detected <Nullable>enable</Nullable>"
               echo "| $name | - | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
               continue;
