@@ -25,15 +25,19 @@ runs:
           fi
           local empty=$((segments - filled))
           local fill="🟥"
-          if [ "$pct" -ge 90 ]; then
+          local suffix=""
+          if [ "$pct" -ge 100 ]; then
             fill="🟩"
+          elif [ "$pct" -ge 90 ]; then
+            fill="🟩"
+            suffix=" 🏁"
           elif [ "$pct" -ge 50 ]; then
             fill="🟨"
           fi
           local bar=""
           for ((i=0; i<filled; i++)); do bar+="$fill"; done
           for ((i=0; i<empty; i++)); do bar+="⬜"; done
-          printf '%s **%s%%**' "$bar" "$pct"
+          printf '%s **%s%%**%s' "$bar" "$pct" "$suffix"
         }
 
         echo "| Project   |    Progress    |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
@@ -52,7 +56,7 @@ runs:
               count=${#files[@]}
               totalNullable=$((totalNullable + count))
               totalFiles=$((totalFiles + count))
-              echo "| <sub>$name</sub> | <sub>██████████ 100%</sub> | <sub>$count / $count</sub> | <sub>✅ csproj</sub> |" >> "$GITHUB_STEP_SUMMARY"
+              echo "| $name | $(progressBar 100) | $count / $count | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
               continue;
           fi
 
