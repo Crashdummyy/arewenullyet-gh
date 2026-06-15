@@ -16,8 +16,25 @@ runs:
     - name: Check projects
       shell: bash
       run: |
-        echo "| Project   |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
-        echo "|-----------|:-------------:|-----------:|" >> "$GITHUB_STEP_SUMMARY"
+        progressBar() {
+          local pct=$1
+          local segments=20
+          local filled=$(( (pct * segments + 50) / 100 ))
+          if [ "$pct" -lt 100 ] && [ "$filled" -ge "$segments" ]; then
+            filled=$((segments - 1))
+          fi
+          local empty=$((segments - filled))
+          local bar=""
+          for ((i=0; i<filled; i++)); do bar+="█"; done
+          for ((i=0; i<empty; i++)); do bar+="░"; done
+          printf '%s %s%%' "$bar" "$pct"
+        }
+
+        echo "| Project   |       Progress       |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|-----------|:--------------------:|:-------------:|-----------:|" >> "$GITHUB_STEP_SUMMARY"
+
+        totalNullable=0
+        totalFiles=0
 
         for project in $(find "${{ inputs.root-path }}" -type f -name "${{ inputs.pattern }}" | sort -n);do
           echo "-> $project"
@@ -25,7 +42,11 @@ runs:
           name="$(basename "$dir")"
           if grep -q "Nullable>enable" "$project";then
               echo "Detected <Nullable>enable</Nullable>"
-              echo "| $name | - | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
+              mapfile -t files < <(find "$dir" -type f -name "*.cs")
+              count=${#files[@]}
+              totalNullable=$((totalNullable + count))
+              totalFiles=$((totalFiles + count))
+              echo "| $name | $(progressBar 100) | $count / $count | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
               continue;
           fi
 
@@ -42,6 +63,35 @@ runs:
                 fi
           done
 
-          echo "| $name | $filecount / ${#files[@]} | $nullableLabel |" >> "$GITHUB_STEP_SUMMARY"
+          totalNullable=$((totalNullable + filecount))
+          totalFiles=$((totalFiles + ${#files[@]}))
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            progress="—"
+          else
+            pct=$(( (100 * filecount + ${#files[@]} / 2) / ${#files[@]} ))
+            if [ "$pct" -eq 100 ] && [ "$filecount" -lt "${#files[@]}" ]; then
+              pct=99
+            fi
+            progress="$(progressBar "$pct")"
+          fi
+
+          echo "| $name | $progress | $filecount / ${#files[@]} | $nullableLabel |" >> "$GITHUB_STEP_SUMMARY"
 
         done
+
+        if [ "$totalFiles" -eq 0 ]; then
+          overallPct=0
+        else
+          overallPct=$(( (100 * totalNullable + totalFiles / 2) / totalFiles ))
+          if [ "$overallPct" -eq 100 ] && [ "$totalNullable" -lt "$totalFiles" ]; then
+            overallPct=99
+          fi
+        fi
+        if [ "$overallPct" -eq 100 ]; then
+          overallLabel="✅"
+        else
+          overallLabel="❌"
+        fi
+
+        echo "| **Total** | $(progressBar "$overallPct") | $totalNullable / $totalFiles | $overallLabel |" >> "$GITHUB_STEP_SUMMARY"
