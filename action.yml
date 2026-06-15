@@ -18,7 +18,7 @@ runs:
       run: |
         progressBar() {
           local pct=$1
-          local segments=20
+          local segments=10
           local filled=$(( (pct * segments + 50) / 100 ))
           if [ "$pct" -lt 100 ] && [ "$filled" -ge "$segments" ]; then
             filled=$((segments - 1))
@@ -27,11 +27,11 @@ runs:
           local bar=""
           for ((i=0; i<filled; i++)); do bar+="█"; done
           for ((i=0; i<empty; i++)); do bar+="░"; done
-          printf '%s %s%%' "$bar" "$pct"
+          printf '%s **%s%%**' "$bar" "$pct"
         }
 
-        echo "| Project   |       Progress       |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
-        echo "|-----------|:--------------------:|:-------------:|-----------:|" >> "$GITHUB_STEP_SUMMARY"
+        echo "| Project   |    Progress    |     Files     |  Nullable? |" >> "$GITHUB_STEP_SUMMARY"
+        echo "|-----------|:--------------:|:-------------:|-----------:|" >> "$GITHUB_STEP_SUMMARY"
 
         totalNullable=0
         totalFiles=0
