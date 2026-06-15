@@ -1,22 +1,19 @@
 # AreWeNullYet
 
-This action collects every csrpoj and checks the ratio of files which currently enable nullable
+This action collects every csproj and checks the ratio of files which currently enable nullable
 
 ## Inputs
 
-### root-path
-
-#### Default: . ( current working directory)
-
-Root directory to look for `.csproj` files
-
-### pattern
-
-#### Default: .csproj
-
-Glob-Pattern of projects to check
-
-## Outputs
+```yaml
+uses: crashdummyy/arewenullyet-gh@master
+with:
+  # Root directory to look for .csproj files
+  # Default: . (current working directory)
+  root-path: './src'
+  # Path of projects to check for nullability
+  # Default: *.csproj
+  pattern: '*NotLegacy*.csproj'
+```
 
 ## Samples
 
@@ -33,8 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
-        id: gitClone
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
       - name: Assert nullability
         uses: crashdummyy/arewenullyet-gh@master
