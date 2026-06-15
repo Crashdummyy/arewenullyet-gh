@@ -52,7 +52,7 @@ runs:
               count=${#files[@]}
               totalNullable=$((totalNullable + count))
               totalFiles=$((totalFiles + count))
-              echo "| $name | $(progressBar 100) | $count / $count | ✅ ( csproj ) |" >> "$GITHUB_STEP_SUMMARY"
+              echo "| <sub>$name</sub> | <sub>██████████ 100%</sub> | <sub>$count / $count</sub> | <sub>✅ csproj</sub> |" >> "$GITHUB_STEP_SUMMARY"
               continue;
           fi
 
